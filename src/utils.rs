@@ -15,10 +15,11 @@ pub fn print_message(msg: &str, color: term::color::Color) {
 
 fn red(s: &str) {
     let mut term_stderr = term::stderr();
-    term_stderr.as_mut().map(|t|{
+
+    if let Some(t) = term_stderr.as_mut() {
         let _ = t.attr(term::Attr::Bold);
         let _ = t.fg(term::color::RED);
-    });
+    }
     eprint!("{}", s);
     let _ = term_stderr.map(|mut t| t.reset());
 }

@@ -278,7 +278,8 @@ impl FuzzProject {
 
         let mut cargo = fs::OpenOptions::new().append(true)
             .open(self.manifest_path())?;
-        Ok(cargo.write_fmt(toml_bin_template!(target))?)
+        cargo.write_fmt(toml_bin_template!(target))?;
+        Ok(())
     }
 
     fn cargo(&self, name: &str, args: &ArgMatches) -> Result<process::Command> {
