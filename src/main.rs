@@ -7,7 +7,7 @@
 
 extern crate toml;
 extern crate clap;
-extern crate tempdir;
+extern crate tempfile;
 extern crate term;
 extern crate tokio;
 extern crate tokio_process;
@@ -469,10 +469,8 @@ impl FuzzProject {
                 .to_owned()
         };
 
-        let tmp = tempdir::TempDir::new_in(self.path(), "cmin")?;
-
+        let tmp = tempfile::Builder::new().prefix("cmin").tempdir_in(self.path())?;
         fs::create_dir(tmp.path().join("corpus"))?;
-
         cmd.arg("-merge=1")
             .arg(tmp.path().join("corpus"))
             .arg(&corpus);
