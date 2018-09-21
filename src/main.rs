@@ -9,7 +9,7 @@ extern crate toml;
 extern crate clap;
 extern crate tempdir;
 extern crate term;
-extern crate tokio_core;
+extern crate tokio;
 extern crate tokio_process;
 extern crate tokio_io;
 extern crate futures;
@@ -22,7 +22,6 @@ use std::io::Write;
 use std::io::Read;
 
 use futures::{Future, Stream};
-use tokio_core::reactor::Core;
 use tokio_process::CommandExt;
 
 #[macro_use]
@@ -403,11 +402,10 @@ impl FuzzProject {
             exec_cmd(&mut cmd).chain_err(|| format!("could not execute command: {:?}", cmd))?;
             Ok(())
         } else {
-            let mut core = Core::new().unwrap();
             cmd.stdout(process::Stdio::piped());
             cmd.stderr(process::Stdio::piped());
             let mut chs = (0..jobs).map(|_| {
-                cmd.spawn_async(&core.handle()).chain_err(||
+                cmd.spawn_async().chain_err(||
                     format!("could not execute command: {:?}", cmd)
                 )
             }).collect::<Result<Vec<_>>>()?;
@@ -435,9 +433,13 @@ impl FuzzProject {
                 r
             });
 
-            let (jobnum, _, _) = core.run(exits.join3(stdouts, stderrs))
-                .chain_err(|| format!("could not run the processes: {:?}", cmd))?;
-            println!("Worker {} finished fuzzing", jobnum);
+            tokio::run(exits.join3(stdouts, stderrs).then(|result| {
+                match result {
+                    Ok((jobnum, _, _)) => println!("Worker {} finished fuzzing", jobnum),
+                    Err(e) => println!("Failed with error {}", e),
+                }
+                Ok(())
+            }));
             Ok(())
         }
     }
