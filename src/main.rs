@@ -118,6 +118,7 @@ Some useful options (to be used as `cargo fuzz run fuzz_target -- <options>`) in
         .subcommand(fuzz_subcommand("cmin")
              .about("Corpus minifier")
              .arg(Arg::with_name("CORPUS")
+                  .required(true)
                   .help("directory with corpus to minify"))
         )
         .subcommand(fuzz_subcommand("tmin")
